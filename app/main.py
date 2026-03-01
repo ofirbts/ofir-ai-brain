@@ -95,8 +95,9 @@ def generic_error_handler(request: Request, exc: Exception):
 
 
 @app.get("/health", response_model=HealthResponse)
+@app.get("/healthz", response_model=HealthResponse)
 def health() -> HealthResponse:
-    """Health check. Returns status and vector store connectivity."""
+    """Health check. Returns status and vector store connectivity. /healthz for cloud platform compatibility."""
     try:
         from app.vector_store import get_vector_store
 
