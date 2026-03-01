@@ -1,0 +1,49 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Virtual envs
+venv
+.venv
+env
+.env
+.env.*
+
+# Secrets and credentials
+credentials.json
+token.json
+drive_token.json
+*.pem
+
+# Local data (use volume mounts in production)
+db/
+logs/
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Tests (exclude from image for smaller size)
+tests/
+*.egg-info
+dist/
+build/
+
+# Docs and misc (optional: include README)
+# docs/
+
+# OS
+.DS_Store
+Thumbs.db
