@@ -1,12 +1,59 @@
 """Configuration via environment variables."""
 
+import os
+import tomllib
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.exceptions import ConfigurationError
+
+
+def _inject_streamlit_secrets() -> None:
+    """Load Streamlit secrets into os.environ so pydantic-settings can read them."""
+    candidates = [
+        Path.cwd() / ".streamlit" / "secrets.toml",
+        Path(__file__).resolve().parent.parent / ".streamlit" / "secrets.toml",
+        Path.home() / ".streamlit" / "secrets.toml",
+    ]
+    for path in candidates:
+        if not path.exists():
+            continue
+        try:
+            with open(path, "rb") as f:
+                data = tomllib.load(f)
+            for key, value in _flatten_toml(data).items():
+                if key not in os.environ and isinstance(value, str) and value:
+                    os.environ[key] = value
+        except Exception:
+            pass
+        break
+
+
+# Env vars our app expects - when found in any TOML section, inject at top level
+_EXPECTED_ENV_VARS = {"GOOGLE_API_KEY", "GOOGLE_APPLICATION_CREDENTIALS", "OFIR_BRAIN_FOLDER_ID"}
+
+
+def _flatten_toml(data: dict[str, Any], prefix: str = "") -> dict[str, str]:
+    """Flatten TOML into env vars. Handles flat keys and nested sections."""
+    result: dict[str, str] = {}
+    for key, value in data.items():
+        full_key = f"{prefix}{key}".upper().replace(".", "_") if prefix else key.upper()
+        if isinstance(value, dict):
+            for k, v in value.items():
+                if isinstance(v, str):
+                    nested_key = f"{full_key}_{k}".upper()
+                    result[nested_key] = v
+                    if k.upper() in _EXPECTED_ENV_VARS:
+                        result[k.upper()] = v  # top-level for pydantic-settings
+        elif isinstance(value, str):
+            result[full_key] = value
+    return result
+
+
+_inject_streamlit_secrets()
 
 
 class Settings(BaseSettings):
