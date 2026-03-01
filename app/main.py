@@ -1,5 +1,13 @@
 """FastAPI application for ofir-ai-brain."""
 
+from pathlib import Path
+import sys
+
+# Ensure project root is on Python path (for Streamlit Cloud, Docker, etc.)
+_root = Path(__file__).resolve().parent.parent
+if str(_root) not in sys.path:
+    sys.path.insert(0, str(_root))
+
 import time
 from contextlib import asynccontextmanager
 from threading import Lock
